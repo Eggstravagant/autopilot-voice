@@ -7,7 +7,7 @@ ARG MODEL=fp16
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PORT=8080 KOKORO_MODEL=kokoro-v1.0.${MODEL}.onnx
 
-RUN useradd --create-home --uid 1000 voice
+RUN useradd --create-home --uid 1000 kokoro
 WORKDIR /app
 
 # Dependencies first: this layer only rebuilds when requirements.txt changes
@@ -19,7 +19,7 @@ COPY fetch_model.py .
 RUN python fetch_model.py "$MODEL"
 
 COPY app.py .
-USER voice
+USER kokoro
 EXPOSE 8080
 # One worker: the model is loaded once and uses every CPU. No access log: Cloud Run logs each request.
 CMD ["sh", "-c", "exec uvicorn app:app --host 0.0.0.0 --port \"$PORT\" --workers 1 --no-access-log --timeout-keep-alive 30 --timeout-graceful-shutdown 8"]
